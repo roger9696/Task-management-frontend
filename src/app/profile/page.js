@@ -10,7 +10,7 @@ export default function Profile() {
   const [refreshTasks, setRefreshTasks] = useState(false);
 
   const [tasks, setTask] = useState([]);
-  const [auth, setAuth] = useState(false);
+  //const [auth, setAuth] = useState(false);
   const [display, setDisplay] = useState(``);
   const [userData, setUserData] = useState({});
 
