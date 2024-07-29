@@ -1,98 +1,151 @@
 "use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { CookieJar } from "tough-cookie";
 
 export default function Profile() {
   const [message, setMessage] = useState("");
-  // const cookieJar = new CookieJar();
-  // const axiosInstance = axios.create({ jar: cookieJar, withCredentials: true });
-  useEffect(() => {
-    (async () => {
-      try {
-        // const res = await axiosInstance.get("http://127.0.0.1:8000/api/user");
-        // const data = await res.data;
+  const [token, setToken] = useState(null);
+  const router = useRouter();
+  const [refreshTasks, setRefreshTasks] = useState(false);
 
-        // console.log(data);
-        // setMessage(data.first_name);
-        const response = await fetch("http://127.0.0.1:8000/api/user", {
-          headers: {
-            Authorization:
-              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwiZXhwIjoxNzIxNjA4OTc0LjYxMDQ3NiwiaWF0IjoxNzIxNjA1Mzc0LjYxMDQ3Nn0.7-yiA5kn67-UU5DyMH-AI2oTsHvKKK6QqqHd344ozzw",
-          },
-          credentials: "include",
-        });
-        const data = await response.json();
-        console.log(data);
-        setMessage(`Hi ${data.id}`);
-      } catch {
-        setMessage("login failed");
-      }
-    })();
+  const [tasks, setTask] = useState([]);
+  const [auth, setAuth] = useState(false);
+  const [display, setDisplay] = useState(``);
+  const [userData, setUserData] = useState({});
+
+  useEffect(() => {
+    const localToken = localStorage.getItem("token");
+    setToken(localToken);
   }, []);
 
-  const task = [
-    {
-      id: 1,
-      taskName: "Attend Bootcamp",
-      taskStatus: "completed",
-      createdDate: "12/01/2024",
-      createdBy: "Roger Naah Napuo",
-    },
+  useEffect(() => {
+    if (token) {
+      (async function fetchUserData() {
+        try {
+          const response = await fetch("http://127.0.0.1:8000/api/user", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          });
+          const data = await response.json();
+          setUserData(data);
+          if (data.is_superuser) {
+            setDisplay(data.last_name);
+          } else {
+            setDisplay(data.id);
+          }
 
-    {
-      id: 2,
-      taskName: "Finish Project",
-      taskStatus: "in progress",
-      createdDate: "12/05/2024",
-      createdBy: "John Doe",
-    },
+          console.log("This is the token" + token);
+          console.log(data.is_superuser);
+          console.log(data);
+          setMessage(`Hi ${data.first_name} ${data.last_name}`);
+          setAuth(true);
+        } catch (error) {
+          setAuth(false);
+          console.error(error);
+          setMessage("login failed");
+        }
+      })();
+    }
+  }, [token]);
 
-    {
-      id: 3,
-      taskName: "Meet with Team",
-      taskStatus: "pending",
-      createdDate: "12/08/2024",
-      createdBy: "Jane Smith",
-    },
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const response = await fetch("http://127.0.0.1:8000/api/createtask");
+      const taskdata = await response.json();
+      setTask(taskdata);
+    };
+    fetchTasks();
+  }, [refreshTasks]);
 
-    {
-      id: 4,
-      taskName: "Submit Report",
-      taskStatus: "completed",
-      createdDate: "12/10/2024",
-      createdBy: "Bob Johnson",
-    },
+  useEffect(() => {
+    console.log(tasks);
+  }, [tasks]);
 
-    {
-      id: 5,
-      taskName: "Attend Meeting",
-      taskStatus: "in progress",
-      createdDate: "12/12/2024",
-      createdBy: "Alice Brown",
-    },
-  ];
+  const handleDelete = (taskId) => {
+    fetch(`http://127.0.0.1:8000/api/createtask/${taskId}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.text();
+      })
+      .then((data) => {
+        if (!data) {
+          console.log(" Deleted successfully");
+          alert("Task deleted successfully");
+          setRefreshTasks(!refreshTasks);
+          return;
+        }
+        try {
+          const jsonData = JSON.parse(data);
+          setTask(tasks.filter((task) => task.id !== taskId));
+        } catch (error) {
+          console.error("Invalid JSON response:", error);
+        }
+      })
+      .catch((error) => {
+        console.error("Error deleting task:", error);
+      });
+  };
 
   return (
     <main className="container-fluid py-5 ">
       <div className="container">
+        <div className="text-center fw-b mb-5">
+          <p>
+            {message} welcome {display}
+            <Link href="/createtask">
+              {userData.is_superuser && (
+                <>
+                  <button
+                    className="btn btn-dark align-center ml-5"
+                    style={{ marginLeft: "20px" }}
+                  >
+                    Creat task
+                  </button>
+                </>
+              )}
+            </Link>
+          </p>
+        </div>
         <table className="table table-bordered">
           <thead>
             <tr>
-              <th>TaskName</th>
-              <th>TaskStatus</th>
-              <th>DateCreated</th>
-              <th>CreatedBy</th>
-              <th>{message}</th>
+              <th>Task Name</th>
+              <th>Task Status</th>
+              <th>Date Created</th>
             </tr>
           </thead>
           <tbody>
-            {task.map((item, index) => (
+            {tasks.map((item, index) => (
               <tr key={index}>
-                <td>{item.taskName}</td>
-                <td>{item.taskStatus}</td>
-                <td>{item.createdDate}</td>
-                <td>{item.createdBy}</td>
+                <td>{item.task_name}</td>
+                <td>{item.task_status}</td>
+                <td>{item.created_date}</td>
+                <td>
+                  {userData.is_superuser && (
+                    <>
+                      <button
+                        className="btn btn-dark align-center mr-5"
+                        style={{ margin: "6px" }}
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        x
+                      </button>
+                      <button
+                        onClick={() => router.push(`/updatetask/${item.id}`)}
+                        className="btn btn-dark align-center ml-5"
+                      >
+                        Update task
+                      </button>
+                    </>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

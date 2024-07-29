@@ -58,9 +58,9 @@ export default function Register() {
       <div className="container">
         <div className="row">
           <div className="col-5 offset-md-3">
-            <h3 className="text-center">Login!</h3>
+            <h3 className="text-center">Register!</h3>
             <hr />
-            <hr />
+
             <form onSubmit={submit} className="mt-3">
               <div className="mb-3">
                 <label htmlFor="FirstName" className="form-label">

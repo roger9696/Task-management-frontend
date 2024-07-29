@@ -11,17 +11,29 @@ export default function Login() {
   const submit = async (e) => {
     e.preventDefault();
 
-    await fetch("http://127.0.0.1:8000/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    });
-
-    router.push("/profile");
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      console.log(data.is_superuser);
+      if (data.jwt) {
+        const token = data.jwt;
+        localStorage.setItem("token", token);
+        console.log(token);
+        router.push("/profile");
+        alert("Logged in successfully");
+      } else {
+        alert("Invalid credentials");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
