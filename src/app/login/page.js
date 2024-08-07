@@ -1,39 +1,34 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import axios from "axios";
+import { loginUser } from "../../../actions/actions";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState({
+    email: "",
+    password: "",
+  });
   const router = useRouter();
 
-  const submit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await response.json();
-      console.log(data.is_superuser);
-      if (data.jwt) {
-        const token = data.jwt;
-        localStorage.setItem("token", token);
-        console.log(token);
-        router.push("/profile");
-        alert("Logged in successfully");
-      } else {
-        alert("Invalid credentials");
-      }
-    } catch (error) {
-      console.error(error);
+    const res = await loginUser(userData);
+    console.log("submitted", res.jwt);
+    localStorage.setItem("token", res.jwt);
+    setUserData({
+      email: "",
+      password: "",
+    });
+    if (res.ok) {
+      router.push("/profile");
+      alert("Logged in successfully");
+    } else {
+      alert("Invalid credentials");
     }
+  };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUserData({ ...userData, [name]: value });
   };
 
   return (
@@ -43,16 +38,18 @@ export default function Login() {
           <div className="col-7 offset-md-3 ">
             <h3 className="text-center">Login!</h3>
             <hr />
-            <form onSubmit={submit} className="mt-3">
+            <form onSubmit={onSubmit} className="mt-3">
               <div className="mb-3">
                 <label htmlFor="email" className="form-label">
                   Email
                 </label>
                 <input
+                  name="email"
+                  value={userData.email}
                   type="email"
                   className="form-control"
                   id="email"
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -60,10 +57,12 @@ export default function Login() {
                   Password
                 </label>
                 <input
+                  name="password"
+                  value={userData.password}
                   type="password"
                   className="form-control"
                   id="password"
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <button type="submit" className="btn btn-primary">

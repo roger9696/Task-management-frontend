@@ -1,29 +1,28 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createTask } from "../../../actions/actions";
 
-export default function Register() {
-  const [task_name, setTaskName] = useState("");
-  const [task_status, setTaskStatus] = useState("");
-  const [created_by, setCreatedBy] = useState("");
+const Register = () => {
+  const [taskData, setTaskData] = useState({
+    task_name: "",
+    task_status: "",
+    created_by: "",
+  });
 
   const router = useRouter();
 
-  const submit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-
-    await fetch("http://127.0.0.1:8000/api/createtask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        task_name,
-        task_status,
-        created_by,
-      }),
-    });
+    const res = await createTask(taskData);
+    console.log(res);
 
     router.push("/profile");
     alert("Task Created successfully!");
+  };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setTaskData({ ...taskData, [name]: value });
   };
 
   return (
@@ -33,17 +32,19 @@ export default function Register() {
           <div className="col-5 offset-md-3">
             <h3 className="text-center">Create a new Task</h3>
             <hr />
-            <form onSubmit={submit} className="mt-3">
+            <form onSubmit={onSubmit} className="mt-3">
               <div className="mb-3">
                 <label htmlFor="TaskName" className="form-label">
                   Task Name
                 </label>
                 <input
+                  name="task_name"
+                  value={taskData.task_name}
                   type="text"
                   className="form-control"
                   required
                   placeholder="Task Name"
-                  onChange={(e) => setTaskName(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -52,10 +53,12 @@ export default function Register() {
                 </label>
                 <input
                   type="text"
+                  name="task_status"
+                  value={taskData.task_status}
                   className="form-control"
                   required
                   placeholder="Task Status"
-                  onChange={(e) => setTaskStatus(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -63,11 +66,13 @@ export default function Register() {
                   Created By
                 </label>
                 <input
+                  name="created_by"
+                  value={taskData.created_by}
                   type="text"
                   className="form-control"
                   required
                   placeholder="Created By"
-                  onChange={(e) => setCreatedBy(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
 
@@ -80,4 +85,5 @@ export default function Register() {
       </div>
     </main>
   );
-}
+};
+export default Register;

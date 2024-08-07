@@ -2,95 +2,65 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getUser, getTasks, deleteTask } from "../../../actions/actions";
+import { withAuth } from "../components/withAuth";
 
-export default function Profile() {
+const Profile = () => {
   const [message, setMessage] = useState("");
   const [token, setToken] = useState(null);
   const router = useRouter();
-  const [refreshTasks, setRefreshTasks] = useState(false);
+  const [refreshTasks, setRefreshTasks] = useState(0);
 
   const [tasks, setTask] = useState([]);
-  //const [auth, setAuth] = useState(false);
+  const [auth, setAuth] = useState(false);
   const [display, setDisplay] = useState(``);
   const [userData, setUserData] = useState({});
 
-  useEffect(() => {
-    const localToken = localStorage.getItem("token");
-    setToken(localToken);
-  }, []);
-
-  useEffect(() => {
-    if (token) {
-      (async function fetchUserData() {
-        try {
-          const response = await fetch("http://127.0.0.1:8000/api/user", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
-          });
-          const data = await response.json();
-          setUserData(data);
-          if (data.is_superuser) {
-            setDisplay(data.last_name);
-          } else {
-            setDisplay(data.id);
-          }
-
-          console.log("This is the token" + token);
-          console.log(data.is_superuser);
-          console.log(data);
-          setMessage(`Hi ${data.first_name} ${data.last_name}`);
-          setAuth(true);
-        } catch (error) {
-          setAuth(false);
-          console.error(error);
-          setMessage("login failed");
-        }
-      })();
+  const fetchUserData = async () => {
+    const token = localStorage.getItem("token");
+    const response = await getUser(token);
+    setUserData(response);
+    if (response.is_superuser) {
+      setDisplay(response.last_name);
+    } else {
+      setDisplay(response.id);
     }
-  }, [token]);
+
+    console.log("This is the token" + token);
+    console.log(response.is_superuser);
+    console.log(response);
+    setMessage(`Hi ${response.first_name} ${response.last_name}`);
+    setAuth(true);
+  };
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      const response = await fetch("http://127.0.0.1:8000/api/createtask");
-      const taskdata = await response.json();
-      setTask(taskdata);
-    };
+    fetchUserData();
     fetchTasks();
   }, [refreshTasks]);
+
+  async function fetchTasks() {
+    const response = await getTasks();
+    console.log(response);
+    setTask(response);
+  }
 
   useEffect(() => {
     console.log(tasks);
   }, [tasks]);
 
-  const handleDelete = (taskId) => {
-    fetch(`http://127.0.0.1:8000/api/createtask/${taskId}`, {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.text();
-      })
-      .then((data) => {
-        if (!data) {
-          console.log(" Deleted successfully");
-          alert("Task deleted successfully");
-          setRefreshTasks(!refreshTasks);
-          return;
-        }
-        try {
-          const jsonData = JSON.parse(data);
-          setTask(tasks.filter((task) => task.id !== taskId));
-        } catch (error) {
-          console.error("Invalid JSON response:", error);
-        }
-      })
-      .catch((error) => {
-        console.error("Error deleting task:", error);
-      });
+  const handleDelete = async (taskId) => {
+    try {
+      const result = await deleteTask(taskId);
+      if (!result) {
+        alert("Task deleted successfully");
+        setRefreshTasks(refreshTasks + 1);
+      } else {
+        console.log("Deleted successfully");
+        setRefreshTasks(refreshTasks + 1);
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   return (
@@ -98,7 +68,7 @@ export default function Profile() {
       <div className="container">
         <div className="text-center fw-b mb-5">
           <p>
-            {message} welcome {display}
+            {message} welcome
             <Link href="/createtask">
               {userData.is_superuser && (
                 <>
@@ -123,7 +93,7 @@ export default function Profile() {
           </thead>
           <tbody>
             {tasks.map((item, index) => (
-              <tr key={index}>
+              <tr key={item.id}>
                 <td>{item.task_name}</td>
                 <td>{item.task_status}</td>
                 <td>{item.created_date}</td>
@@ -153,4 +123,5 @@ export default function Profile() {
       </div>
     </main>
   );
-}
+};
+export default withAuth(Profile);

@@ -1,56 +1,39 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import axios from "axios";
+import { registerUser } from "../../../actions/actions";
 
 export default function Register() {
-  const [first_name, setFirstName] = useState("");
-  const [last_name, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+  });
   const router = useRouter();
 
-  const submit = async (e) => {
+  async function onSubmit(e) {
     e.preventDefault();
-
-    // await fetch("http://127.0.0.1:8000/api/register", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     first_Name,
-    //     last_Name,
-    //     email,
-    //     password,
-    //   }),
-    // });
-    const axios = require("axios");
-    let data = JSON.stringify({
-      first_name,
-      last_name,
-      email,
-      password,
+    const res = await registerUser(userData);
+    console.log("submitted", res.data);
+    console.log("submitted");
+    setUserData({
+      first_name: "",
+      last_name: "",
+      email: "",
+      password: "",
     });
+    // Check if registration is successful
+    if (res.success || res.message === "User created successfully") {
+      router.push("/login");
+    } else {
+      console.log("Registration failed");
+    }
+  }
 
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: "http://127.0.0.1:8000/api/register",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    axios
-      .request(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    router.push("/login");
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUserData({ ...userData, [name]: value });
   };
 
   return (
@@ -61,17 +44,19 @@ export default function Register() {
             <h3 className="text-center">Register!</h3>
             <hr />
 
-            <form onSubmit={submit} className="mt-3">
+            <form onSubmit={onSubmit} className="mt-3">
               <div className="mb-3">
                 <label htmlFor="FirstName" className="form-label">
                   First Name
                 </label>
                 <input
                   type="text"
+                  name="first_name"
                   className="form-control"
                   required
+                  value={userData.first_name}
                   placeholder="First Name"
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -82,8 +67,10 @@ export default function Register() {
                   type="text"
                   className="form-control"
                   required
+                  value={userData.last_name}
+                  name="last_name"
                   placeholder="Last Name"
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -94,8 +81,10 @@ export default function Register() {
                   type="email"
                   className="form-control"
                   required
+                  name="email"
+                  value={userData.email}
                   placeholder="Email"
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -106,8 +95,10 @@ export default function Register() {
                   type="password"
                   className="form-control"
                   required
+                  name="password"
+                  value={userData.password}
                   placeholder="Password"
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handleInputChange}
                 />
               </div>
               <button type="submit" className="btn btn-primary">

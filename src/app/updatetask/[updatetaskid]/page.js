@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { getTask, updateTask } from "../../../../actions/actions";
 
 function EditTask({}) {
   const router = useRouter();
@@ -11,15 +12,24 @@ function EditTask({}) {
   console.log(params);
   const [taskName, setTaskName] = useState("");
   const [taskStatus, setTaskStatus] = useState("");
+  const [taskData, setTaskData] = useState({
+    task_name: "",
+    task_status: "",
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setTaskData({ ...taskData, [name]: value });
+  };
 
   useEffect(() => {
     if (taskId) {
-      fetch(`http://127.0.0.1:8000/api/createtask/${taskId}/`)
-        .then((response) => response.json())
-        .then((data) => {
-          setTaskName(data.task_name);
-          setTaskStatus(data.task_status);
-        });
+      async function fetchtask() {
+        const res = await getTask(taskId);
+        console.log(res);
+        setTaskData({ task_name: res.task_name, task_status: res.task_status });
+      }
+      fetchtask();
     }
   }, [taskId]);
   console.log(taskId);
@@ -28,19 +38,12 @@ function EditTask({}) {
     e.preventDefault();
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8000/api/createtask/${taskId}/`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            task_name: taskName,
-            task_status: taskStatus,
-          }),
-        }
-      );
+      async function updatetask() {
+        const response = await updateTask(taskData, taskId);
+        console.log(response);
+        router.push("/profile");
+      }
+      updatetask();
 
       const data = await response.json();
       console.log(data);
@@ -59,18 +62,20 @@ function EditTask({}) {
             <form onSubmit={handleSubmit}>
               <label>Task Name:</label>
               <input
+                name="task_name"
+                value={taskData.task_name}
                 type="text"
                 className="form-control"
-                value={taskName}
-                onChange={(e) => setTaskName(e.target.value)}
+                onChange={handleInputChange}
               />
               <br />
               <label>Task Status:</label>
               <input
+                name="task_status"
+                value={taskData.task_status}
                 type="text"
                 className="form-control"
-                value={taskStatus}
-                onChange={(e) => setTaskStatus(e.target.value)}
+                onChange={handleInputChange}
               />
               <br />
               <button className="btn btn-primary" type="submit">

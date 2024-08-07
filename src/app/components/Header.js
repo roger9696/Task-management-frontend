@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { logoutUser } from "../../../actions/actions";
+import Link from "next/link";
 
 export default function Header({ auth }) {
   let menu;
@@ -11,20 +13,21 @@ export default function Header({ auth }) {
   useEffect(() => {
     const localToken = localStorage.getItem("token");
     setToken(localToken);
+    console.log(localToken);
   }, []);
 
-  const logout = async () => {
-    await fetch("http://127.0.0.1:8000/api/logout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-    });
-    localStorage.removeItem("token");
-    await router.push("/login");
-  };
+  // const logout = async () => {
+  //     method: "POST",
+  //   await fetch("http://127.0.0.1:8000/api/logout", {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //     credentials: "include",
+  //   });
+  //   localStorage.removeItem("token");
+  //   await router.push("/login");
+  // };
 
   // if (auth) {
   //   menu = (
@@ -61,7 +64,15 @@ export default function Header({ auth }) {
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div className="navbar-nav ms-auto">{menu}</div>
+          <div className="navbar-nav ms-auto">
+            <a
+              className="nav-link active"
+              aria-current="page"
+              onClick={() => logoutUser(router)}
+            >
+              Logout
+            </a>
+          </div>
         </div>
       </div>
     </nav>
