@@ -1,51 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { logoutUser } from "../../../actions/actions";
-import Link from "next/link";
 
 export default function Header({ auth }) {
   let menu;
   const router = useRouter();
-  const [token, setToken] = useState(null);
 
-  useEffect(() => {
-    const localToken = localStorage.getItem("token");
-    setToken(localToken);
-    console.log(localToken);
-  }, []);
-
-  // const logout = async () => {
-  //     method: "POST",
-  //   await fetch("http://127.0.0.1:8000/api/logout", {
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: `Bearer ${token}`,
-  //     },
-  //     credentials: "include",
-  //   });
-  //   localStorage.removeItem("token");
-  //   await router.push("/login");
-  // };
-
-  // if (auth) {
-  //   menu = (
-  //     <div>
-  //       <a className="nav-link active" aria-current="page" href="login">
-  //         Login
-  //       </a>
-  //     </div>
-  //   );
-  // } else {
-  //   menu = (
-  //     <div>
-  //       <a className="nav-link active" aria-current="page" onClick={logout}>
-  //         Logout
-  //       </a>
-  //     </div>
-  //   );
-  // }
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary border">
       <div className="container">

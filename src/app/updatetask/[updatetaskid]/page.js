@@ -8,10 +8,6 @@ function EditTask({}) {
   const router = useRouter();
   const params = useParams();
   const taskId = params.updatetaskid ?? null;
-  console.log(taskId);
-  console.log(params);
-  const [taskName, setTaskName] = useState("");
-  const [taskStatus, setTaskStatus] = useState("");
   const [taskData, setTaskData] = useState({
     task_name: "",
     task_status: "",
@@ -32,24 +28,21 @@ function EditTask({}) {
       fetchtask();
     }
   }, [taskId]);
-  console.log(taskId);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       async function updatetask() {
         const response = await updateTask(taskData, taskId);
-        console.log(response);
+        console.log(`Task ${taskId} updated successfully`);
+        // console.log(`Task ${taskId} updated successfully`, response);
         router.push("/profile");
       }
       updatetask();
-
-      const data = await response.json();
-      console.log(data);
       router.push("/profile");
     } catch (error) {
       console.error(error);
+      console.log("Failed to update task");
     }
   };
 

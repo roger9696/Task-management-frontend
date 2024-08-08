@@ -4,26 +4,23 @@ import { useState } from "react";
 import { registerUser } from "../../../actions/actions";
 
 export default function Register() {
+  const router = useRouter();
   const [userData, setUserData] = useState({
     first_name: "",
     last_name: "",
     email: "",
     password: "",
   });
-  const router = useRouter();
 
   async function onSubmit(e) {
     e.preventDefault();
     const res = await registerUser(userData);
-    console.log("submitted", res.data);
-    console.log("submitted");
     setUserData({
       first_name: "",
       last_name: "",
       email: "",
       password: "",
     });
-    // Check if registration is successful
     if (res.success || res.message === "User created successfully") {
       router.push("/login");
     } else {

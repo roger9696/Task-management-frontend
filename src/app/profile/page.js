@@ -7,13 +7,10 @@ import { withAuth } from "../components/withAuth";
 
 const Profile = () => {
   const [message, setMessage] = useState("");
-  const [token, setToken] = useState(null);
   const router = useRouter();
   const [refreshTasks, setRefreshTasks] = useState(0);
-
   const [tasks, setTask] = useState([]);
-  const [auth, setAuth] = useState(false);
-  const [display, setDisplay] = useState(``);
+  const [display, setDisplay] = useState("");
   const [userData, setUserData] = useState({});
 
   const fetchUserData = async () => {
@@ -21,16 +18,11 @@ const Profile = () => {
     const response = await getUser(token);
     setUserData(response);
     if (response.is_superuser) {
-      setDisplay(response.last_name);
+      setDisplay(`( 🤵 Admin )`);
     } else {
-      setDisplay(response.id);
+      setDisplay(`( User )`);
     }
-
-    console.log("This is the token" + token);
-    console.log(response.is_superuser);
-    console.log(response);
     setMessage(`Hi ${response.first_name} ${response.last_name}`);
-    setAuth(true);
   };
 
   useEffect(() => {
@@ -40,13 +32,8 @@ const Profile = () => {
 
   async function fetchTasks() {
     const response = await getTasks();
-    console.log(response);
     setTask(response);
   }
-
-  useEffect(() => {
-    console.log(tasks);
-  }, [tasks]);
 
   const handleDelete = async (taskId) => {
     try {
@@ -67,8 +54,9 @@ const Profile = () => {
     <main className="container-fluid py-5 ">
       <div className="container">
         <div className="text-center fw-b mb-5">
-          <p>
-            {message} welcome
+          <div>
+            <p>{message} welcome!</p>
+            {display}
             <Link href="/createtask">
               {userData.is_superuser && (
                 <>
@@ -81,7 +69,7 @@ const Profile = () => {
                 </>
               )}
             </Link>
-          </p>
+          </div>
         </div>
         <table className="table table-bordered">
           <thead>
